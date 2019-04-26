@@ -1,6 +1,7 @@
 ﻿using ByteBank.Forum.Models;
 using ByteBank.Forum.ViewModels;
 using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.Owin;
 using Microsoft.AspNet.Identity.EntityFramework;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,26 @@ namespace ByteBank.Forum.Controllers
 {
     public class ContaController : Controller
     {
+        //Com o back field criado, adicionaremos a propriedade UserManager, na qual implementaremos os métodos get e set, logo abaixo:
+        private UserManager<UsuarioAplicacao> _userManager;
+
+        public UserManager<UsuarioAplicacao> UserManager
+        {
+            get
+            {
+                if (_userManager == null)
+                {
+                    var contextOwin = HttpContext.GetOwinContext();
+                    _userManager = contextOwin.GetUserManager<UserManager<UsuarioAplicacao>>();
+                }
+                return _userManager;
+            }
+            set
+            {
+                _userManager = value;
+            }
+        }
+
         // GET: Conta
         public ActionResult Registrar()
         {
@@ -21,6 +42,25 @@ namespace ByteBank.Forum.Controllers
 
         [HttpPost]
         public async Task<ActionResult> Registrar(ContaRegistrarViewModel modelo)
+        {
+            if (ModelState.IsValid)
+            {             
+
+                var novoUsuario = new UsuarioAplicacao();
+                novoUsuario.Email = modelo.Email;
+                novoUsuario.UserName = modelo.UserName;
+                novoUsuario.NomeCompleto = modelo.NomeCompleto;
+               
+                await UserManager.CreateAsync(novoUsuario, modelo.Senha);
+               
+                return RedirectToAction("Index", "Home");
+            }
+            //alguma coisa aconteceu de errado.
+            return View(modelo);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> RegistrarSemOwin(ContaRegistrarViewModel modelo)
         {
             if (ModelState.IsValid)
             {
