@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web;
+using ByteBank.Forum.App_Start.Identity;
 
 //atributo OwinStartup do assembly, que definirá o tipo da classe de inicialização do OWIN
 //definimos para o OWIN que Startup é a classe de inicialização
@@ -55,7 +56,25 @@ namespace ByteBank.Forum
             builder.CreatePerOwinContext<UserManager<UsuarioAplicacao>>((opcoes, contextOwin) =>
             {
                 var userStore = contextOwin.Get<IUserStore<UsuarioAplicacao>>();
-                return new UserManager<UsuarioAplicacao>(userStore);
+                var userManager = new UserManager<UsuarioAplicacao>(userStore);
+
+                var userValidator = new UserValidator<UsuarioAplicacao>(userManager);
+                //configurar para nao permidar mais emails duplicados
+                userValidator.RequireUniqueEmail = true;
+
+                //property iniatialize. Quando voce tem chaves na construcao de seus ojectos vc esta usando o property initialize.
+                userManager.PasswordValidator = new SenhaValidador()
+                {
+                    TamanhoRequiredo = 6,
+                    ObrigatorioCaracteresEspeciais = true,
+                    ObrigatorioDigitos = true,
+                    ObrigatorioLowerCase = true,
+                    ObrigatorioUpperCase = true
+                };
+
+                userManager.UserValidator = userValidator;
+
+                return userManager;
 
             });
         }

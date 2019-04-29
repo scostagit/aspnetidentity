@@ -44,19 +44,43 @@ namespace ByteBank.Forum.Controllers
         public async Task<ActionResult> Registrar(ContaRegistrarViewModel modelo)
         {
             if (ModelState.IsValid)
-            {             
+            {
 
                 var novoUsuario = new UsuarioAplicacao();
                 novoUsuario.Email = modelo.Email;
                 novoUsuario.UserName = modelo.UserName;
                 novoUsuario.NomeCompleto = modelo.NomeCompleto;
-               
-                await UserManager.CreateAsync(novoUsuario, modelo.Senha);
-               
-                return RedirectToAction("Index", "Home");
+
+
+                var usuario = this.UserManager.FindByEmail(modelo.Email);
+                var usuarioJaExiste = usuario != null;
+
+                if (usuarioJaExiste)
+                    return RedirectToAction("Index", "Home");
+
+                var identityResult = await this.UserManager.CreateAsync(novoUsuario, modelo.Senha);
+
+                if (identityResult.Succeeded)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    AdicionaErros(identityResult);
+                }
+
+
             }
             //alguma coisa aconteceu de errado.
             return View(modelo);
+        }
+
+        private void AdicionaErros(IdentityResult identityResult)
+        {
+            foreach (var erro in identityResult.Errors)
+            {
+                ModelState.AddModelError("", erro);
+            }
         }
 
         [HttpPost]
