@@ -66,7 +66,5 @@ namespace ByteBank.Forum.App_Start.Identity
 
         private bool VerificaDigito(string senha) =>
             senha.Any(char.IsDigit);
-
-
     }
 }

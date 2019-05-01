@@ -74,6 +74,19 @@ namespace ByteBank.Forum
 
                 userManager.UserValidator = userValidator;
 
+                //pligando o servico de email no identity
+                userManager.EmailService = new EmailServico();
+                
+                /*
+                 * user token provider
+                 * DataProtectionProvider, que é um provedor de objetos protetores de dados. O utilizaremos para construir UserTokenProvider
+                 */
+                var dataProtectionProvider = opcoes.DataProtectionProvider;
+                var dataProcttionPrividerCreated = dataProtectionProvider.Create("ByteBank.Forum");
+
+                userManager.UserTokenProvider = new DataProtectorTokenProvider<UsuarioAplicacao>(dataProcttionPrividerCreated);
+
+
                 return userManager;
 
             });
